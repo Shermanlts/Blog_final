@@ -1,7 +1,7 @@
 # Blog_final
 
 <h1>Udacity Full Stack Developer Blog section final</h1>
-<h2>written by R. Sherman</h2>
+<h2>Written by R. Sherman</h2>
 
 
 <h3>Description</h3>
@@ -34,7 +34,7 @@
 <h3>Implementation</h3>
 <p>The system may be implemented one of two ways.</p>
 <p>The first is to download the Google app engine onto your machine and run the application directly.  Directions to download and run GAE may be found at:</p>
-<a href:"https://cloud.google.com/appengine/docs/python/quickstart">Quickstart guide</a>
+https://cloud.google.com/appengine/docs/python/quickstart
 <p>The second is to upload the app to an existing Google api project.  Please note that you will have to update the <b>app.yaml</b> file to point to your api before you can proceed.
 
 <h3>Notes</h3>

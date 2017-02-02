@@ -36,3 +36,18 @@ body {
 	text-shadow: 1px 1px grey;
 	border-radius: 20px;
 }
+.footer_inner {
+	text-align: center;
+	background: #859ec6;
+	text-shadow: 1px 1px grey;
+	border-radius: 20px;
+	flex-wrap: wrap;
+}
+.footer_content {
+	width: calc((100% - 100px)/3);
+	margin-right: 50px;
+}
+.footer_content_last {
+	width: calc((100% - 100px)/3);
+	margin-right: 0px;
+}

@@ -18,6 +18,9 @@
 <h4>blog.py</h4>
 <p>Main program running the blog written in Python with the Jinja2 plugin used</p>
 <br>
+<h4>/static/main.css</h4>
+<p>CSS file for HTML code
+<br>
 <h4>/Templates/blog.html</h4>
 <p>Webpage that shows blog posts once logged in</p>
 <br>

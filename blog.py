@@ -12,7 +12,7 @@ from google.appengine.ext import db
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(Loader=jinja2.FileSystemLoader(template_dir),
-                              autoescape=True)
+                               autoescape=True)
 
 secret = 'monkey'
 
@@ -36,10 +36,44 @@ class BlogHandler(webapp2.RequestHandler):
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
 
-class Mainpage(BlogHandler):
-    def get(self):
-        
 
+class MainPage(BlogHandler):
+    def get(self):
+        self.render('welcome.html')
+
+    def post(self):
+        login = self.request.get('login')
+        signup = self.request.get('signup')
+
+        if login:
+            self.redirect('/login')
+        elif signup:
+            self.redirect('/signup')
+
+
+class Signup(BlogHandler):
+    def get(self):
+        self.render('signup.html')
+
+
+class login(BlogHandler):
+    def get(self):
+        self.render('login.html')
+
+
+class PostPage(BlogHandler):
+    def get(self):
+        self.render('blog.html')
+
+
+class NewPost(BlogHandler):
+    def get(self):
+        self.render('newpost.html')
+
+
+class logout(BlogHandler):
+    def get(self):
+        self.render('logout.html')
 
 app = webapp2.WSGIApplication([('/?', MainPage),
                                ('/([0-9]+', PostPage),

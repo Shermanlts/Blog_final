@@ -2,5 +2,26 @@
 
 {% block content %}
 
+<div class="main_block">
+	<h3 class="header text">
+		Please enter your login info below.
+	</h3>
+	<div class="login">
+		<form mothod="post">
+			<h4>Username</h4>
+			<input type="text" name="username" value="{{username}}">
+			<br>
+			<br>
+			<h4>Password</h4>
+			<input type="password" name="password" value="">
+			<input type="submit" class="login_submit">
+			<br>
+			<br>
+			<div class="error">
+				{{error}}
+			</div>
+		</form>
+	</div>
+</div>
 
 {% endblock %}

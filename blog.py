@@ -10,29 +10,13 @@ import jinja2
 
 from google.appengine.ext import db
 
-template_dir = os.path.join(os.path.dirname(__file__), 'Templates')
+template_dir = os.path.join(os.path.dirname(__file__), "Templates")
 jinja_env = jinja2.Environment(
     loader=jinja2.FileSystemLoader(template_dir),
     autoescape=True
     )
 
-secret = 'monkey'
-
-
-# def render_str(template, **params):
-#    t = jinja_env.get_template(template)
-#    return t.render(params)
-
-
-# def make_secure(val):
-#    return '%|%' % (val, hmac.new(secret, val).hexdigest())
-
-
-# def check_secure(secure_val):
-#    val = secure_val.split('|')[0]
-#    if secure_val == make_secure(val):
-#        return val
-
+secret = "10ajwoc803nwW"
 
 class BlogHandler(webapp2.RequestHandler):
     def write(self, *a, **kw):
@@ -45,41 +29,107 @@ class BlogHandler(webapp2.RequestHandler):
     def render(self, template, **kw):
         self.write(self.render_str(template, **kw))
 
+    def salt(self, length):
+        alph = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        chars = []
+        for i in range(length):
+            chars.append(random.choice(alph))
+        return "".join(chars)
+
+    def hash(self, name, pw, salt):
+        if not salt:
+            salt = salt(8)
+        h = hashlib.sha256(name + pw + salt).hexdigest()
+        return '%s,%s' % (salt, h)
+
+    def validate(self, name, pw, h):
+        salt = h.split(',')[0]
+        return h == hash(name, pw, salt)
+
+    def make_cookie(self, uid):
+        {
+            
+        }
+
+
+class user(db.Model):
+    name = db.StringProperty(required=True)
+    pw_hash = db.StringProperty(required=True)
+
 
 class MainPage(BlogHandler):
     def get(self):
-        self.render('welcome.html')
+        self.render("welcome.html")
+
+
+def valid_username(self, username):
+    USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
+    return username and USER_RE.match(username)
+
+
+def valid_password(self, password):
+    PASS_RE = re.compile(r"^.{3,20}$")
+    return password and PASS_RE.match(password)
 
 
 class Signup(BlogHandler):
     def get(self):
-        self.render('signup.html')
+        self.render("signup.html")
+
+    def post(self):
+        errors = False
+        self.username = self.request.get('username')
+        self.password = self.request.get('password')
+        self.verify = self.request.get('verify')
+        holder = dict(username=self.username)
+        u = user.by_name(self.username)
+
+        if not valid_username(self.username):
+            holder['name_err'] = "Not a valid username."
+            errors = True
+        elif u:
+            holder['name_err'] = "That user already exists."
+
+        if not valid_password(self.password):
+            holder['pass_err'] = "Not a valid password."
+            errors = True
+        elif self.password != self.verify:
+            holder['pass_err'] = "Passwords do not match."
+
+        if errors:
+            self.render('signup.html', **holder)
+        else:
+            h = hash(self.username, self.password)
+            nu = user(name=self.username, pw_hash=h)
+            nu.put()
 
 
-class login(BlogHandler):
+
+class Login(BlogHandler):
     def get(self):
-        self.render('login.html')
+        self.render("login.html")
 
 
 class PostPage(BlogHandler):
     def get(self):
-        self.render('blog.html')
+        self.render("blog.html")
 
 
 class NewPost(BlogHandler):
     def get(self):
-        self.render('newpost.html')
+        self.render("newpost.html")
 
 
-class logout(BlogHandler):
+class Logout(BlogHandler):
     def get(self):
-        self.render('logout.html')
+        self.render("logout.html")
 
-app = webapp2.WSGIApplication([('/?', MainPage),
-                               ('/([0-9]+', PostPage),
-                               ('/newpost', NewPost),
-                               ('/signup', Signup),
-                               ('/login', login),
-                               ('/logout', logout),
+
+app = webapp2.WSGIApplication([("/", MainPage),
+                               ("/([0-9]+)", PostPage),
+                               ("/newpost", NewPost),
+                               ("/signup", Signup),
+                               ("/login", Login),
+                               ("/logout", Logout),
                                ],
                               debug=True)

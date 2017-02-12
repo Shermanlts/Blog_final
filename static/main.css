@@ -21,6 +21,12 @@ body {
 	.header_content {
 		font-size: 1em
 	}
+	.text {
+		font-size: 1em;
+	}
+	.button {
+		font-size: 40px;
+	}
 }
 @media only screen and (min-width: 876px){
 	.header_title {
@@ -28,6 +34,9 @@ body {
 	}
 	.header_content {
 		font-size: 2em;
+	}
+	.button {
+		font-size: 60px;
 	}
 }
 .header_inner {
@@ -54,7 +63,25 @@ body {
 .main_block {
 	background: #859ec6;
 	border-radius: 20px;
+	margin-top: 30px;
+	margin-bottom: 30px;
+	padding: 15px;
 }
 .text {
 	font-size: 2em;
+}
+.button {
+	-webkit-appearance: button;
+	-moz-appearance: button;
+	appearance: button;
+
+	text-decoration: none;
+	color: initial;
+	width: 20%;
+	height: 80px;
+	text-align: center;
+	margin-left: 20%;
+}
+.login_submit {
+	margin-left: 5%;
 }

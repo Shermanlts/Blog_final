@@ -18,6 +18,7 @@ jinja_env = jinja2.Environment(
 
 secret = "10ajwoc803nwW"
 
+
 class BlogHandler(webapp2.RequestHandler):
     def write(self, *a, **kw):
         self.response.out.write(*a, **kw)
@@ -36,7 +37,7 @@ class BlogHandler(webapp2.RequestHandler):
             chars.append(random.choice(alph))
         return "".join(chars)
 
-    def hash(self, name, pw, salt):
+    def make_hash(self, name, pw, salt):
         if not salt:
             salt = salt(8)
         h = hashlib.sha256(name + pw + salt).hexdigest()
@@ -47,14 +48,38 @@ class BlogHandler(webapp2.RequestHandler):
         return h == hash(name, pw, salt)
 
     def make_cookie(self, uid):
-        {
-            
-        }
+        h = hashlib.sha256(uid + secret).hexdigest()
+        return '%|%' % (uid, h)
+
+    def check_cookie(self, cookie):
+        uid = cookie.split('|')[0]
+        if cookie == self.make_cookie(uid):
+            if user.check_id(uid):
+                return uid
+
+    def clear_cookie(self):
+        self.response.headers.add_header(
+            'Set-Cookie',
+            '')
+
+    def set_cookie(self, uid):
+        self.response.headers.add_header(
+            'Set-Cookie',
+            self.make_cookie(uid))
 
 
 class user(db.Model):
     name = db.StringProperty(required=True)
     pw_hash = db.StringProperty(required=True)
+
+    @classmethod
+    def check_id(cls, uid):
+        return user.get_by_id(uid)
+
+    @classmethod
+    def check_name(cls, name):
+        u = user.all().filter('name =', name).get()
+        return u
 
 
 class MainPage(BlogHandler):
@@ -62,12 +87,12 @@ class MainPage(BlogHandler):
         self.render("welcome.html")
 
 
-def valid_username(self, username):
+def valid_username(username):
     USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
     return username and USER_RE.match(username)
 
 
-def valid_password(self, password):
+def valid_password(password):
     PASS_RE = re.compile(r"^.{3,20}$")
     return password and PASS_RE.match(password)
 
@@ -82,13 +107,14 @@ class Signup(BlogHandler):
         self.password = self.request.get('password')
         self.verify = self.request.get('verify')
         holder = dict(username=self.username)
-        u = user.by_name(self.username)
+        u = user.check_name(self.username)
 
         if not valid_username(self.username):
             holder['name_err'] = "Not a valid username."
             errors = True
         elif u:
             holder['name_err'] = "That user already exists."
+            errors = True
 
         if not valid_password(self.password):
             holder['pass_err'] = "Not a valid password."
@@ -99,10 +125,9 @@ class Signup(BlogHandler):
         if errors:
             self.render('signup.html', **holder)
         else:
-            h = hash(self.username, self.password)
+            h = make_hash(self.username, self.password)
             nu = user(name=self.username, pw_hash=h)
             nu.put()
-
 
 
 class Login(BlogHandler):
@@ -120,7 +145,7 @@ class NewPost(BlogHandler):
         self.render("newpost.html")
 
 
-class Logout(BlogHandler):
+class Blog(BlogHandler):
     def get(self):
         self.render("logout.html")
 
@@ -130,6 +155,6 @@ app = webapp2.WSGIApplication([("/", MainPage),
                                ("/newpost", NewPost),
                                ("/signup", Signup),
                                ("/login", Login),
-                               ("/logout", Logout),
+                               ("/blog", Blog),
                                ],
                               debug=True)

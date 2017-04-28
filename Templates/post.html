@@ -1,0 +1,11 @@
+{% extends "blog_template.html" %}
+
+{% block content %}
+
+	{{p.subject}}
+	<br>
+	{{p.created.strftime("%b %d, %Y")}}
+	<br>
+	{{p._render_text | safe}}
+
+{% endblock %}

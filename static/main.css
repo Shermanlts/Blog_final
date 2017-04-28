@@ -80,7 +80,15 @@ body {
 	width: 20%;
 	height: 80px;
 	text-align: center;
+}
+.indent {
 	margin-left: 20%;
+}
+.iwidth {
+	width: 100%;
+}
+.iheight {
+	height: 300px;
 }
 .login_submit {
 	margin-left: 5%;

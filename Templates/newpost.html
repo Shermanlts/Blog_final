@@ -1,6 +1,22 @@
 {% extends "blog_template.html" %}
 
 {% block content %}
+<div class="main_block">
+	<h2>Enter your new post below</h2>
+	    <form method="post">
+	      <label>
+	        <div>subject</div>
+	        <input type="text" name="subject" value="{{subject}}" class="iwidth">
+	      </label>
 
+	      <label>
+	        <div>blog</div>
+	        <textarea name="content" class="iwidth iheight">{{content}}</textarea>
+	      </label>
 
+	      <div class="error">{{error}}</div>
+
+	      <input type="submit" class="button">
+	    </form>
+</div>
 {% endblock %}

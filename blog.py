@@ -3,7 +3,7 @@ import re
 import random
 import hashlib
 import hmac
-import string
+from string import letters
 
 import webapp2
 import jinja2
@@ -74,22 +74,53 @@ class BlogHandler(webapp2.RequestHandler):
     #     self.response.headers.add_header('Set-Cookie', 'user_id=; Path=/')
 
 
-# class user(db.Model):
-#     name = db.StringProperty(required=True)
-#     pw_hash = db.StringProperty(required=True)
+def make_salt(length=5):
+    return ''.join(random.choice(letters) for x in xrange(length))
 
-#     @classmethod
-#     def check_id(cls, uid):
-#         return user.get_by_id(uid)
 
-#     @classmethod
-#     def check_name(cls, name):
-#         u = user.all().filter('name =', name).get()
-#         return u
+def make_pw_hash(name, pw, salt=None):
+    if not salt:
+        salt = make_salt()
+    h = hashlib.sha256(name + pw + salt).hexdigest()
+    return '%s,%s' % (salt, h)
 
-#     @classmethod
-#     def signup(cls, name, pw):
-#         pw_hash = make_cookie()
+
+def valid_pw(name, password, h):
+    salt = h.split(',')[0]
+    return h == make_pw_hash(name, password, salt)
+
+
+def users_key(group='default'):
+    return db.Key.from_path('users', group)
+
+
+class User(db.Model):
+    name = db.StringProperty(required=True)
+    pw_hash = db.StringProperty(required=True)
+    email = db.StringProperty()
+
+    @classmethod
+    def by_id(cls, uid):
+        return User.get_by_id(uid)
+
+    @classmethod
+    def by_name(cls, name):
+        u = User.all().filter('name =', name).get()
+        return u
+
+    @classmethod
+    def register(cls, name, pw, email=None):
+        pw_hash = make_pw_hash(name, pw)
+        return User(parent=users_key(),
+                    name=name,
+                    pw_hash=pw_hash,
+                    email=email)
+
+    @classmethod
+    def login(cls, name, pw):
+        u = cls.by_name(name)
+        if u and valid_pw(name, pw, u.pw_hash):
+            return u
 
 
 class Post(db.Model):
@@ -118,7 +149,7 @@ class PostPage(BlogHandler):
             self.error(404)
             return
 
-        self.render("permalink.html", post=post)
+        self.render("permalink.html", post = post)
 
 
 class NewPost(BlogHandler):
@@ -130,17 +161,17 @@ class NewPost(BlogHandler):
         content = self.request.get('content')
 
         if subject and content:
-            p = Post(subject=subject, content=content)
+            p = Post(subject = subject, content = content)
             p.put()
-            self.redirect('/blog/%s' % str(p.key().id()))
+            self.redirect('/%s' % str(p.key().id()))
         else:
-            error = "Please enter a subject and content"
+            error = "subject and content, please!"
             self.render("newpost.html", subject=subject, content=content, error=error)
 
 
 class MainPage(BlogHandler):
     def get(self):
-        self.render("welcome.html")
+        self.render("start.html")
 
 
 # def valid_username(username):
@@ -207,10 +238,10 @@ class Blog(BlogHandler):
 
 
 app = webapp2.WSGIApplication([("/", MainPage),
-                               ("/blog/([0-9]+)", PostPage),
-                               ("/blog/newpost", NewPost),
+                               ("/blog", BlogFront),
+                               ("/([0-9]+)", PostPage),
+                               ("/newpost", NewPost),
                                # ("/signup", Signup),
                                # ("/login", Login),
-                               ("/blog/?", BlogFront),
                                ],
                               debug=True)

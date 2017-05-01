@@ -70,6 +70,22 @@ body {
 .text {
 	font-size: 2em;
 }
+.post {
+	background: #aeb0b2;
+	margin-bottom: 5px;
+}
+.subject {
+	font-size: 1.5em;
+	font-weight: bold;
+}
+.content {
+	margin-top: 5px;
+}
+.date {
+	margin-top: 20px;
+	font-size: .8em;
+	font-style: italic;
+}
 .button {
 	-webkit-appearance: button;
 	-moz-appearance: button;

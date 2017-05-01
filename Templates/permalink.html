@@ -1,5 +1,7 @@
 {% extends "blog_template.html" %}
 
 {% block content %}
-  {{post.render() | safe}}
+	<div class="main_block">
+  		{{post.render() | safe}}
+  	</div>
 {% endblock %}

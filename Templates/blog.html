@@ -1,10 +1,12 @@
 {% extends "blog_template.html" %}
 
 {% block content %}
+	<div class="main_block">
+		{% for p in posts %}
+			{{ p.render() | safe }}
+			<br><br>
+		{% endfor %}
+	</div>
 
-	{% for p in posts %}
-		{{ p.render() | safe }}
-		<br><br>
-	{% endfor %}
 
 {% endblock %}

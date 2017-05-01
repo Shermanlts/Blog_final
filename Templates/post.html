@@ -1,11 +1,13 @@
-{% extends "blog_template.html" %}
 
-{% block content %}
-
-	{{p.subject}}
-	<br>
-	{{p.created.strftime("%b %d, %Y")}}
-	<br>
-	{{p._render_text | safe}}
-
-{% endblock %}
+<div class="post">
+    <div class="subject">
+        {{p.subject}}
+    </div>
+    <hr>
+    <div class="content">
+        {{p._render_text | safe}}
+    </div>
+    <div class="date">
+       {{p.created.strftime("%b %d, %Y")}}
+    </div>  
+</div>

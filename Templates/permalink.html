@@ -1,7 +1,26 @@
 {% extends "blog_template.html" %}
 
 {% block content %}
+	<div class="menu">
+			<a href="/logout" class="button2">Logout</a>
+			<a href="/blog" class="button2">Blog</a>
+			<a href="/newpost" class="button2">New Post</a>
+			{% if user == post.poster %}
+				<a href="/edit/{{ post.key().id() }}" class="button2">Edit</a>
+				<a href="/delete/{{ post.key().id() }}" class="button2">Delete</a>
+			{% else %}
+				<form method="post">
+					<button type="submit" class="button2">Like</button>
+					</form>
+			{% endif %}
 	<div class="main_block">
   		{{post.render() | safe}}
   	</div>
+  	<br>
+	<div class="main_block">
+		<h3>Post a comment</h3>
+	<br>
+	<div class="buttons">
+		
+	</div>
 {% endblock %}

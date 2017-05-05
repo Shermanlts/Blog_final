@@ -1,0 +1,14 @@
+{% extends "blog_template.html" %}
+
+{% block content %}
+<div class="main_block">
+	<p class="text">Welcome {{name}}:</p>
+	<br>
+	<p class="text">Thank you for signing in. Please select your choice below</p>
+	<br>
+	<div class="buttons">
+	<a href="/blog" class="button indent">Blog</a>
+	<a href="/logout" class="button indent">Logout</a>
+	</div>	    
+</div>
+{% endblock %}

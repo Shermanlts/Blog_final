@@ -1,13 +1,16 @@
 
 <div class="post">
-    <div class="subject">
-        {{p.subject}}
+    <div>
+        <a href="{{p.perma_link}}", class="subject">{{p.subject}}</a>
     </div>
     <hr>
     <div class="content">
+
         {{p._render_text | safe}}
     </div>
     <div class="date">
        {{p.created.strftime("%b %d, %Y")}}
-    </div>  
+        | Posted by 
+        {{p.poster}}
+    </div>
 </div>

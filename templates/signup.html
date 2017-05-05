@@ -4,16 +4,28 @@
 
 <div class="main_block">
 	<h3 class="header text">
-		Please enter your login info below.
+		Enter your new user info below
 	</h3>
 	<div class="login">
 		<form method="post">
 			<h4>Username</h4>
 			<input type="text" name="username" value="{{username}}">
-			<br>
+			<div class="error">
+				{{name_err}}
+			</div>
 			<br>
 			<h4>Password</h4>
 			<input type="password" name="password" value="">
+			<div class="error">
+				{{pass_err}}
+			</div>
+			<br>
+			<h4>Re-enter password</h4>
+			<input type="password" name="verify" value="">
+			<br>
+			<br>
+			<h4>Email</h4>
+			<input type="text" name="email" value="{{email}}">
 			<input type="submit" class="login_submit">
 			<br>
 			<div class="error">
@@ -22,9 +34,9 @@
 			<br>
 			<br>
 			<br>
-			<p>Don't have a login? Signup here:</p>
+			<p>Already have an account? Then login here:</p>
 			<div class="buttons">
-				<a href="/signup" class="button indent">signup</a>
+				<a href="/login" class="button indent">Login</a>
 			</div>
 		</form>
 	</div>

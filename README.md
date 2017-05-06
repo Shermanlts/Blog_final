@@ -27,11 +27,37 @@
 <h4>/Templates/blog_template.html</h4>
 <p>Main blog template that all other pages pull from</p>
 <br>
+<h4>/Templates/cedit.html</h4>
+<p>Page used to edit comments</p>
+<br>
+<h4>/Templates/comment.html</h4>
+<p>Page used to format comments</p>
+<br>
+<h4>/Templates/edit.html</h4>
+<p>Page used to edit posts</p>
+<br>
 <h4>/Templates/login.html</h4>
 <p>Login webpage</p>
 <br>
 <h4>/Templates/logout.html</h4>
 <p>Logout webpage</p>
+<h4>/Templates/newpost.html</h4>
+<p>Page used for new posts</p>
+<br>
+<h4>/Templates/permalink.html</h4>
+<p>Page used when linking to a single post</p>
+<br>
+<h4>/Templates/post.html</h4>
+<p>Html used to format post display</p>
+<br>
+<h4>/Templates/signup.html</h4>
+<p>Signup page for site</p>
+<br>
+<h4>/Templates/start.html</h4>
+<p>Initial un-logged in landing page</p>
+<br>
+<h4>/Templates/welcome.html</h4>
+<p>Welcome page used when logging in</p>
 
 
 <h3>Implementation</h3>

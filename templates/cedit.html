@@ -2,14 +2,14 @@
 
 {% block content %}
 	<div class="main_block">
-		<h2>Edit your comment below</h2>
+		<h2>Edit your post below</h2>
 		    <a href="/{{ pid }}" class="button2">Cancel</a>
 		    <form method="post">
 		      <label>
+		        <div>blog</div>
 		        <textarea name="comment" class="iwidth iheight">{{comment}}</textarea>
 		      </label>
 		      <div class="error">{{error}}</div>
-
 		      <input type="submit" class="button2">
 		    </form>
 	</div>

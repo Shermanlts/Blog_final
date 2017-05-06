@@ -152,10 +152,12 @@ class User(db.Model):
 # defines a comments DB for posts
 class Comment(db.Model):
     # Sets the comments DB
-    post = db.StringProperty(required=True)
+    postID = db.StringProperty(required=True)
     commenter = db.StringProperty(required=True)
-    comment = db.StringProperty(required=True)
+    comment = db.TextProperty(required=True)
     created = db.DateTimeProperty(auto_now_add=True)
+    # CID is used to hold the keyID more accessible for template use
+    CID = db.StringProperty()
 
     def render(self):
         self._render_text = self.comment.replace('\n', '<br>')
@@ -190,6 +192,46 @@ class BlogFront(BlogHandler):
             self.redirect('/')
 
 
+# Handles editing of posts "/edit/"
+class CEditPost(BlogHandler):
+    def get(self, post_id):
+        if self.user:
+            key = db.Key.from_path('Comment', int(post_id))
+            c = db.get(key)
+            comment = c.comment
+            pid = c.postID
+            self.render("edit.html", comment=comment, pid=pid)
+        else:
+            self.redirect('/')
+
+    def post(self, post_id):
+        comment = self.request.get('comment')
+        if comment:
+            key = db.Key.from_path('Comment', int(post_id))
+            c = db.get(key)
+            c.comment = comment
+            c.put()
+            sleep(1)
+            self.redirect('/%s' % c.postID)
+        else:
+            error = "You must enter something!"
+            self.render("edit.html", comment=comment,
+                        error=error)
+
+
+# Delete a post
+class CDeletePost(BlogHandler):
+    def get(self, post_id):
+        if self.user:
+            key = db.Key.from_path('Comment', int(post_id))
+            comment = db.get(key)
+            post = str(comment.postID)
+            comment.delete()
+            # redirect was happening before delete completed so sleep added
+            sleep(1)
+            self.redirect('/%s' % post)
+
+
 # Delete a post
 class DeletePost(BlogHandler):
     def get(self, post_id):
@@ -197,7 +239,7 @@ class DeletePost(BlogHandler):
             key = db.Key.from_path('Post', int(post_id))
             post = db.get(key)
             post.delete()
-            #redirect was happening before delete completed so sleep added
+            # redirect was happening before delete completed so sleep added
             sleep(1)
             self.redirect('/')
 
@@ -225,11 +267,13 @@ class EditPost(BlogHandler):
             p.subject = subject
             p.content = content
             p.put()
+            sleep(1)
             self.redirect(p.perma_link)
         else:
-            error = "subject and content, please!"
+            error = "Subject and content, please!"
             self.render("edit.html", subject=subject, content=content,
                         error=error)
+
 
 # Handles the "/Login" page
 class Login(BlogHandler):
@@ -283,7 +327,7 @@ class NewPost(BlogHandler):
             p.put()
             self.redirect(p.perma_link)
         else:
-            error = "subject and content, please!"
+            error = "Subject and content, please!"
             self.render("newpost.html", subject=subject, content=content,
                         error=error)
 
@@ -295,12 +339,35 @@ class PostPage(BlogHandler):
             key = db.Key.from_path('Post', int(post_id))
             user = self.user.name
             post = db.get(key)
+            posts = Comment.all().order('-created')
             if not post:
                 self.error(404)
                 return
-            self.render("permalink.html", post=post, user=user)
+            self.render("permalink.html", post=post, user=user, posts=posts)
         else:
             self.redirect('/')
+
+    def post(self, post_id):
+        if self.request.get('content'):
+            key = db.Key.from_path('Post', int(post_id))
+            user = self.user.name
+            content = self.request.get('content')
+            pid = db.get(key)
+            if content:
+                c = Comment(commenter=user, postID=post_id, comment=content)
+                c.put()
+                c.CID = '%s' % str(c.key().id())
+                c.put()
+                sleep(1)
+                posts = Comment.all().order('-created')
+                self.render("permalink.html", post=pid, user=user, posts=posts)
+        elif self.request.get('cedit'):
+            cedit = self.request.get('cedit')
+        else:
+            posts = Comment.all().order('-created')
+            error = "You must enter something!"
+            self.render("permalink.html", post=post_id, user=user,
+                        posts=posts, error=error)
 
 
 # Handles the singup page "/signup"
@@ -354,6 +421,8 @@ app = webapp2.WSGIApplication([("/", MainPage),
                                ("/signup", Signup),
                                ("/delete/([0-9]+)", DeletePost),
                                ("/edit/([0-9]+)", EditPost),
+                               ("/cedit/([0-9]+)", CEditPost),
+                               ("/cdelete/([0-9]+)", CDeletePost),
                                ("/login", Login),
                                ("/welcome", Welcome),
                                ("/logout", Logout)

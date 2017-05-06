@@ -10,22 +10,28 @@
 			<a href="/newpost" class="button2">New Post</a>	
 	<div class="main_block">
   		{{post.render() | safe}}
+  		<p class="likes">Liked by: {{ likes }}</p>
   		{% if user == post.poster %}
-			
+			<a href="/edit/{{ post.key().id() }}" class="button2">Edit</a>
 			<a href="/delete/{{ post.key().id() }}" class="button2">Delete</a>
 		{% else %}
-			<form method="post">
-				<button type="submit" class="button2">Like</button>
-			</form>
+			{% if liked == True %}
+				<button>Liked</button>
+			{% else %}
+				<form method="post">
+					<input type="hidden" name="like" value="user">
+					<button type="submit" class="button2">Like</button>
+				</form>
+			{% endif %}
 		{% endif %}
-	{% if posts %}
   	</div>
+	{% if posts %}
   		<br>
 		<div class="main_block">
 			<h3>Post a comment</h3>
 			<form method="post">
 		      <label>
-		        <textarea name="content" class="hwidth"></textarea>
+		        <textarea name="comment" class="hwidth"></textarea>
 		      </label>
 		      <div class="error">{{error}}</div>
 		      <input type="submit" class="button2">

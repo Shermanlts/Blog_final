@@ -159,6 +159,7 @@ class Comment(db.Model):
     # CID is used to hold the keyID more accessible for template use
     CID = db.StringProperty()
 
+    # Formats text so that returns show in html reprint
     def render(self):
         self._render_text = self.comment.replace('\n', '<br>')
         return render_strg("comment.html", p=self)
@@ -171,6 +172,7 @@ class Post(db.Model):
     created = db.DateTimeProperty(auto_now_add=True)
     poster = db.StringProperty(required=True)
     last_modified = db.DateTimeProperty(auto_now=True)
+    liked_by = db.ListProperty(str)
     perma_link = db.StringProperty()
 
     # Formats text so that returns show in html reprint
@@ -195,6 +197,7 @@ class BlogFront(BlogHandler):
 # Handles editing of posts "/edit/"
 class CEditPost(BlogHandler):
     def get(self, post_id):
+        # if self.user used to ensure user is logged in throughout code
         if self.user:
             key = db.Key.from_path('Comment', int(post_id))
             c = db.get(key)
@@ -219,7 +222,7 @@ class CEditPost(BlogHandler):
                         error=error)
 
 
-# Delete a post
+# Delete a Comment
 class CDeletePost(BlogHandler):
     def get(self, post_id):
         if self.user:
@@ -339,32 +342,44 @@ class PostPage(BlogHandler):
             key = db.Key.from_path('Post', int(post_id))
             user = self.user.name
             post = db.get(key)
-            posts = Comment.all().order('-created')
+            posts = Comment.all().filter('postID =', post_id).order('-created')
+            likes = 0
+            liked = False
+            for people in post.liked_by:
+                likes += 1
+                if people == user:
+                    liked = True
             if not post:
                 self.error(404)
                 return
-            self.render("permalink.html", post=post, user=user, posts=posts)
+            self.render("permalink.html", post=post, user=user, posts=posts,
+                        likes=str(likes), liked=liked)
         else:
             self.redirect('/')
 
     def post(self, post_id):
-        if self.request.get('content'):
-            key = db.Key.from_path('Post', int(post_id))
-            user = self.user.name
-            content = self.request.get('content')
-            pid = db.get(key)
-            if content:
-                c = Comment(commenter=user, postID=post_id, comment=content)
-                c.put()
-                c.CID = '%s' % str(c.key().id())
-                c.put()
-                sleep(1)
-                posts = Comment.all().order('-created')
-                self.render("permalink.html", post=pid, user=user, posts=posts)
-        elif self.request.get('cedit'):
-            cedit = self.request.get('cedit')
+        # used for new comments
+        key = db.Key.from_path('Post', int(post_id))
+        user = self.user.name
+        if self.request.get('comment'):
+            comment = self.request.get('comment')
+            c = Comment(commenter=user, postID=post_id, comment=comment)
+            c.put()
+            c.CID = '%s' % str(c.key().id())
+            c.put()
+            sleep(1)
+            self.redirect('/%s' % post_id)
+        # used for new likes
+        elif self.request.get('like'):
+            p = db.get(key)  
+            p.liked_by.append(user)
+            p.put()
+            sleep(1)
+            self.redirect(p.perma_link)
+        # used for errors
         else:
-            posts = Comment.all().order('-created')
+            posts = Comment.all().filter('postID =', post_id).order('-created')
+            user = self.user.name
             error = "You must enter something!"
             self.render("permalink.html", post=post_id, user=user,
                         posts=posts, error=error)
@@ -414,6 +429,7 @@ class Welcome(BlogHandler):
         else:
             self.redirect('/')
 
+# Below tells the application which function to send a specific web address
 app = webapp2.WSGIApplication([("/", MainPage),
                                ("/blog", BlogFront),
                                ("/([0-9]+)", PostPage),

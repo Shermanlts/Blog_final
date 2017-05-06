@@ -1,6 +1,8 @@
+<!--This page is never called directly. It is used to format comments
+    on the permalink.html page-->
 <div class="comment">
     <div class="content">
-        {{ p._render_text | safe }}</p>
+        <p>{{ p._render_text | safe }}</p>
     </div>
     <div class="date">
        {{ p.created.strftime("%b %d, %Y") }}

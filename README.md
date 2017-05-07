@@ -61,10 +61,12 @@
 
 
 <h3>Implementation</h3>
-<p>The system may be implemented one of two ways.</p>
-<p>The first is to download the Google app engine onto your machine and run the application directly.  Directions to download and run GAE may be found at:</p>
-https://cloud.google.com/appengine/docs/python/quickstart
-<p>The second is to upload the app to an existing Google api project.  Please note that you will have to update the <b>app.yaml</b> file to point to your api before you can proceed.
+<p>To start with you will need to install the Google App engine which can be downloaded and installed at https://cloud.google.com/appengine/docs/standard/python/download</p>
+<p>Once installed you can run the app on your local machine by running command <i>dev_appserver.py app.yaml</i></p>
+<p>This will allow you to view the app at web address localhost:8080</p>
+<br>
+<p>Once you are happy with the app you can use the gcloud command system to upload the app to the web. You will need to setup a Gcloud project to upload to first</p>
+<p>Gcloud is constantly updating so be sure and check the API documentation before attempting an upload</p>
 
 <h3>Notes</h3>
 <p>This program was written to run with Python 2.7 and may not work using other versions of Python</p>

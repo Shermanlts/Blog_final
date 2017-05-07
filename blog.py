@@ -74,8 +74,7 @@ def make_salt(length=5):
 
 
 def make_pw_hash(name, pw, salt=None):
-    """Creates a password hash for secure DB storage
-    
+    """Creates a password hash for secure DB storage   
     Args:
         name: name of user
         pw: password of user
@@ -257,12 +256,14 @@ class CEditPost(BlogHandler):
     """Handles editing of posts "/edit/"""
     @login_required
     def get(self, post_id):
-        """if self.user used to ensure user is logged in throughout code"""
         key = db.Key.from_path('Comment', int(post_id))
         c = db.get(key)
-        comment = c.comment
-        pid = c.postID
-        self.render("edit.html", comment=comment, pid=pid)
+        if c:
+            comment = c.comment
+            pid = c.postID
+            self.render("cedit.html", comment=comment, pid=pid)
+        else:
+            self.redirect('/blog')
 
     @login_required
     def post(self, post_id):
@@ -270,13 +271,16 @@ class CEditPost(BlogHandler):
         if comment:
             key = db.Key.from_path('Comment', int(post_id))
             c = db.get(key)
-            c.comment = comment
-            c.put()
-            sleep(1)
-            self.redirect('/%s' % c.postID)
+            if c:
+                c.comment = comment
+                c.put()
+                sleep(1)
+                self.redirect('/%s' % c.postID)
+            else:
+                self.redirect('/blog')
         else:
             error = "You must enter something!"
-            self.render("edit.html", comment=comment,
+            self.render("cedit.html", comment=comment,
                         error=error)
 
 
@@ -286,8 +290,11 @@ class CDeletePost(BlogHandler):
     def get(self, post_id):
         key = db.Key.from_path('Comment', int(post_id))
         comment = db.get(key)
-        post = str(comment.postID)
-        comment.delete()
+        if comment.commenter == self.user.name:
+            post = str(comment.postID)
+            comment.delete()
+        else:
+            self.redirect('/blog')
         """redirect was happening before delete completed so sleep added"""
         sleep(1)
         self.redirect('/%s' % post)
@@ -299,7 +306,8 @@ class DeletePost(BlogHandler):
     def get(self, post_id):
         key = db.Key.from_path('Post', int(post_id))
         post = db.get(key)
-        post.delete()
+        if post and (self.user.name == post.poster):
+            post.delete()
         """redirect was happening before delete completed so sleep added"""
         sleep(1)
         self.redirect('/')
@@ -311,11 +319,15 @@ class EditPost(BlogHandler):
     def get(self, post_id):
         key = db.Key.from_path('Post', int(post_id))
         post = db.get(key)
-        subject = post.subject
-        content = post.content
-        pid = post_id
-        self.render("edit.html", subject=subject, content=content, pid=pid)
+        if post:
+            subject = post.subject
+            content = post.content
+            pid = post_id
+            self.render("edit.html", subject=subject, content=content, pid=pid)
+        else:
+            self.redirect('/blog')
 
+    @login_required
     def post(self, post_id):
         subject = self.request.get('subject')
         content = self.request.get('content')
@@ -323,11 +335,14 @@ class EditPost(BlogHandler):
         if subject and content:
             key = db.Key.from_path('Post', int(post_id))
             p = db.get(key)
-            p.subject = subject
-            p.content = content
-            p.put()
-            sleep(1)
-            self.redirect(p.perma_link)
+            if p and (self.user.name == p.poster):
+                p.subject = subject
+                p.content = content
+                p.put()
+                sleep(1)
+                self.redirect(p.perma_link)
+            else:
+                self.redirect('/blog')
         else:
             error = "Subject and content, please!"
             self.render("edit.html", subject=subject, content=content,
@@ -373,6 +388,7 @@ class NewPost(BlogHandler):
     def get(self):
         self.render("newpost.html")
 
+    @login_required
     def post(self):
         subject = self.request.get('subject')
         content = self.request.get('content')
@@ -409,6 +425,7 @@ class PostPage(BlogHandler):
         self.render("permalink.html", post=post, user=user, posts=posts,
                     likes=str(likes), liked=liked)
 
+    @login_required
     def post(self, post_id):
         """used for new comments"""
         key = db.Key.from_path('Post', int(post_id))
@@ -423,10 +440,12 @@ class PostPage(BlogHandler):
             self.redirect('/%s' % post_id)
         elif self.request.get('like'):
             p = db.get(key)
-            p.liked_by.append(user)
-            p.put()
-            sleep(1)
-            self.redirect(p.perma_link)
+            if self.user.name != p.poster:
+                if self.user.name not in p.liked_by:
+                    p.liked_by.append(user)
+                    p.put()
+                    sleep(1)
+                self.redirect(p.perma_link)
         else:
             posts = Comment.all().filter('postID =', post_id).order('-created')
             user = self.user.name

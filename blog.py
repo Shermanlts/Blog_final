@@ -108,6 +108,19 @@ def valid_pw(name, password, h):
     return h == make_pw_hash(name, password, salt)
 
 
+def login_required(func):
+    """
+    A decorator to confirm a user is logged in or redirect as needed.
+    """
+    def login(self, *args, **kwargs):
+        # Redirect to login if user not logged in, else execute func.
+        if not self.user:
+            self.redirect("/")
+        else:
+            func(self, *args, **kwargs)
+    return login
+
+
 #  Blog and database classes **************************************************
 class BlogHandler(webapp2.RequestHandler):
     """Basic blog functions which are imported into page classes"""
@@ -186,7 +199,6 @@ class User(db.Model):
             return u
 
 
-
 class Comment(db.Model):
     """defines a comments DB for posts
     Attr:
@@ -235,27 +247,24 @@ class Post(db.Model):
 
 class BlogFront(BlogHandler):
     """Main blog page handler /blog"""
+    @login_required
     def get(self):
-        if self.user:
-            posts = Post.all().order('-created')
-            self.render('blog.html', posts=posts)
-        else:
-            self.redirect('/')
+        posts = Post.all().order('-created')
+        self.render('blog.html', posts=posts)
 
 
 class CEditPost(BlogHandler):
     """Handles editing of posts "/edit/"""
+    @login_required
     def get(self, post_id):
         """if self.user used to ensure user is logged in throughout code"""
-        if self.user:
-            key = db.Key.from_path('Comment', int(post_id))
-            c = db.get(key)
-            comment = c.comment
-            pid = c.postID
-            self.render("edit.html", comment=comment, pid=pid)
-        else:
-            self.redirect('/')
+        key = db.Key.from_path('Comment', int(post_id))
+        c = db.get(key)
+        comment = c.comment
+        pid = c.postID
+        self.render("edit.html", comment=comment, pid=pid)
 
+    @login_required
     def post(self, post_id):
         comment = self.request.get('comment')
         if comment:
@@ -273,41 +282,39 @@ class CEditPost(BlogHandler):
 
 class CDeletePost(BlogHandler):
     """Delete a Comment"""
+    @login_required
     def get(self, post_id):
-        if self.user:
-            key = db.Key.from_path('Comment', int(post_id))
-            comment = db.get(key)
-            post = str(comment.postID)
-            comment.delete()
-            """redirect was happening before delete completed so sleep added"""
-            sleep(1)
-            self.redirect('/%s' % post)
+        key = db.Key.from_path('Comment', int(post_id))
+        comment = db.get(key)
+        post = str(comment.postID)
+        comment.delete()
+        """redirect was happening before delete completed so sleep added"""
+        sleep(1)
+        self.redirect('/%s' % post)
 
 
 class DeletePost(BlogHandler):
     """Delete a post"""
+    @login_required
     def get(self, post_id):
-        if self.user:
-            key = db.Key.from_path('Post', int(post_id))
-            post = db.get(key)
-            post.delete()
-            """redirect was happening before delete completed so sleep added"""
-            sleep(1)
-            self.redirect('/')
+        key = db.Key.from_path('Post', int(post_id))
+        post = db.get(key)
+        post.delete()
+        """redirect was happening before delete completed so sleep added"""
+        sleep(1)
+        self.redirect('/')
 
 
 class EditPost(BlogHandler):
     """Handles editing of posts "/edit/"""
+    @login_required
     def get(self, post_id):
-        if self.user:
-            key = db.Key.from_path('Post', int(post_id))
-            post = db.get(key)
-            subject = post.subject
-            content = post.content
-            pid = post_id
-            self.render("edit.html", subject=subject, content=content, pid=pid)
-        else:
-            self.redirect('/')
+        key = db.Key.from_path('Post', int(post_id))
+        post = db.get(key)
+        subject = post.subject
+        content = post.content
+        pid = post_id
+        self.render("edit.html", subject=subject, content=content, pid=pid)
 
     def post(self, post_id):
         subject = self.request.get('subject')
@@ -362,11 +369,9 @@ class MainPage(BlogHandler):
 
 class NewPost(BlogHandler):
     """Handles new posts "/newpost"""
+    @login_required
     def get(self):
-        if self.user:
-            self.render("newpost.html")
-        else:
-            self.redirect('/')
+        self.render("newpost.html")
 
     def post(self):
         subject = self.request.get('subject')
@@ -386,25 +391,23 @@ class NewPost(BlogHandler):
 
 class PostPage(BlogHandler):
     """Handles permanent linked posts "/([0-9]+)"""
+    @login_required
     def get(self, post_id):
-        if self.user:
-            key = db.Key.from_path('Post', int(post_id))
-            user = self.user.name
-            post = db.get(key)
-            posts = Comment.all().filter('postID =', post_id).order('-created')
-            likes = 0
-            liked = False
-            for people in post.liked_by:
-                likes += 1
-                if people == user:
-                    liked = True
-            if not post:
-                self.error(404)
-                return
-            self.render("permalink.html", post=post, user=user, posts=posts,
-                        likes=str(likes), liked=liked)
-        else:
-            self.redirect('/')
+        key = db.Key.from_path('Post', int(post_id))
+        user = self.user.name
+        post = db.get(key)
+        posts = Comment.all().filter('postID =', post_id).order('-created')
+        likes = 0
+        liked = False
+        for people in post.liked_by:
+            likes += 1
+            if people == user:
+                liked = True
+        if not post:
+            self.error(404)
+            return
+        self.render("permalink.html", post=post, user=user, posts=posts,
+                    likes=str(likes), liked=liked)
 
     def post(self, post_id):
         """used for new comments"""
@@ -470,11 +473,9 @@ class Signup(BlogHandler):
 
 class Welcome(BlogHandler):
     """Handles the "/welcome" page. Users are sent there upon login/signup"""
+    @login_required
     def get(self):
-        if self.user:
-            self.render("welcome.html", name=self.user.name)
-        else:
-            self.redirect('/')
+        self.render("welcome.html", name=self.user.name)
 
 """Below tells the application which function to send a specific web address"""
 app = webapp2.WSGIApplication([("/", MainPage),

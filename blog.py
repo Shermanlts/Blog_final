@@ -19,9 +19,8 @@ jinja_env = jinja2.Environment(
 
 secret = "10ajwoc803nwW"
 
+
 #  Universal functions*****************************************************
-
-
 def render_strg(template, **params):
     """Renders output based upon template
 

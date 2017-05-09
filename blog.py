@@ -251,45 +251,13 @@ class BlogFront(BlogHandler):
         self.render('blog.html', posts=posts)
 
 
-class CEditPost(BlogHandler):
-    """Handles editing of posts "/edit/"""
-    @login_required
-    def get(self, post_id):
-        key = db.Key.from_path('Comment', int(post_id))
-        c = db.get(key)
-        if c:
-            comment = c.comment
-            pid = c.postID
-            self.render("cedit.html", comment=comment, pid=pid)
-        else:
-            self.redirect('/blog')
-
-    @login_required
-    def post(self, post_id):
-        comment = self.request.get('comment')
-        if comment:
-            key = db.Key.from_path('Comment', int(post_id))
-            c = db.get(key)
-            if c:
-                c.comment = comment
-                c.put()
-                sleep(1)
-                self.redirect('/%s' % c.postID)
-            else:
-                self.redirect('/blog')
-        else:
-            error = "You must enter something!"
-            self.render("cedit.html", comment=comment,
-                        error=error)
-
-
-class CDeletePost(BlogHandler):
+class DeleteComment(BlogHandler):
     """Delete a Comment"""
     @login_required
     def get(self, post_id):
         key = db.Key.from_path('Comment', int(post_id))
         comment = db.get(key)
-        if comment.commenter == self.user.name:
+        if comment and comment.commenter == self.user.name:
             post = str(comment.postID)
             comment.delete()
         else:
@@ -310,6 +278,38 @@ class DeletePost(BlogHandler):
         """redirect was happening before delete completed so sleep added"""
         sleep(1)
         self.redirect('/')
+
+
+class EditComment(BlogHandler):
+    """Handles editing of posts "/edit/"""
+    @login_required
+    def get(self, post_id):
+        key = db.Key.from_path('Comment', int(post_id))
+        c = db.get(key)
+        if c and c.commenter == self.user.name:
+            comment = c.comment
+            pid = c.postID
+            self.render("cedit.html", comment=comment, pid=pid)
+        else:
+            self.redirect('/blog')
+
+    @login_required
+    def post(self, post_id):
+        comment = self.request.get('comment')
+        if comment:
+            key = db.Key.from_path('Comment', int(post_id))
+            c = db.get(key)
+            if c and c.commenter == self.user.name:
+                c.comment = comment
+                c.put()
+                sleep(1)
+                self.redirect('/%s' % c.postID)
+            else:
+                self.redirect('/blog')
+        else:
+            error = "You must enter something!"
+            self.render("cedit.html", comment=comment,
+                        error=error)
 
 
 class EditPost(BlogHandler):
@@ -503,8 +503,8 @@ app = webapp2.WSGIApplication([("/", MainPage),
                                ("/signup", Signup),
                                ("/delete/([0-9]+)", DeletePost),
                                ("/edit/([0-9]+)", EditPost),
-                               ("/cedit/([0-9]+)", CEditPost),
-                               ("/cdelete/([0-9]+)", CDeletePost),
+                               ("/cedit/([0-9]+)", EditComment),
+                               ("/cdelete/([0-9]+)", DeleteComment),
                                ("/login", Login),
                                ("/welcome", Welcome),
                                ("/logout", Logout)
